@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEGO Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow: #FFD700;
+    --red: #E3000B;
+    --dark: #1a1a2e;
+    --light: #fffef0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Nunito', sans-serif; background: var(--dark); color: var(--light); overflow-x: hidden; }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 32px;
+    background: rgba(26,26,46,0.93);
+    backdrop-filter: blur(12px);
+    border-bottom: 3px solid var(--yellow);
+  }
+  .nav-logo {
+    font-family: 'Bangers', cursive; font-size: 2rem;
+    color: var(--yellow); letter-spacing: 3px;
+    text-shadow: 3px 3px 0 var(--red);
+  }
+  .nav-btns { display: flex; gap: 12px; align-items: center; }
+  .btn-nav {
+    font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.85rem;
+    padding: 8px 18px; border: 2.5px solid var(--yellow); border-radius: 8px;
+    background: transparent; color: var(--yellow); cursor: pointer; transition: all 0.2s;
+  }
+  .btn-nav:hover { background: var(--yellow); color: var(--dark); transform: translateY(-2px); }
+  #about-btn { background: var(--yellow); color: var(--dark); }
+  #about-btn:hover { background: transparent; color: var(--yellow); }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 2000;
+    background: rgba(0,0,0,0.75); justify-content: center; align-items: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: var(--dark); border: 3px solid var(--yellow); border-radius: 16px;
+    padding: 40px 48px; text-align: center; max-width: 380px; width: 90%;
+    position: relative; animation: popIn 0.3s ease;
+  }
+  @keyframes popIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal-close { position: absolute; top: 12px; right: 16px; background: none; border: none; color: var(--light); font-size: 1.5rem; cursor: pointer; opacity: 0.6; }
+  .modal-close:hover { opacity: 1; }
+  .modal-avatar {
+    width: 72px; height: 72px; border-radius: 50%; background: var(--yellow);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px; font-family: 'Bangers', cursive; font-size: 2rem; color: var(--dark);
+  }
+  .modal-name { font-family: 'Bangers', cursive; font-size: 2rem; color: var(--yellow); letter-spacing: 2px; margin-bottom: 8px; }
+  .modal-email {
+    font-size: 0.95rem; color: rgba(255,255,240,0.7);
+    background: rgba(255,215,0,0.08); padding: 8px 16px;
+    border-radius: 8px; border: 1px solid rgba(255,215,0,0.2);
+  }
+
+  .game-section {
+    min-height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 100px 24px 60px; position: relative;
+    background-size: cover; background-position: center; background-attachment: fixed;
+    background-color: #1a1a2e;
+  }
+  .game-section::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+
+  .game-content { position: relative; z-index: 1; text-align: center; max-width: 820px; width: 100%; }
+  .game-badge {
+    display: inline-block; background: var(--yellow); color: var(--dark);
+    font-family: 'Bangers', cursive; font-size: 1rem; letter-spacing: 3px;
+    padding: 4px 20px; border-radius: 4px; margin-bottom: 16px;
+  }
+  .game-title {
+    font-family: 'Bangers', cursive; font-size: clamp(2.4rem, 6vw, 4.8rem);
+    color: #fff; line-height: 1.05;
+    text-shadow: 4px 4px 0 var(--red), 8px 8px 0 rgba(0,0,0,0.3);
+    margin-bottom: 10px; letter-spacing: 2px;
+  }
+  .game-year { font-size: 0.95rem; color: rgba(255,255,255,0.6); margin-bottom: 36px; letter-spacing: 2px; text-transform: uppercase; }
+
+  .tabs { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+  .tab-btn {
+    font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 0.88rem;
+    padding: 9px 22px; border-radius: 50px; border: 2.5px solid rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.08); color: #fff; cursor: pointer; transition: all 0.2s;
+    backdrop-filter: blur(6px);
+  }
+  .tab-btn:hover, .tab-btn.active { background: var(--yellow); border-color: var(--yellow); color: var(--dark); transform: translateY(-2px); }
+
+  .panel {
+    display: none; background: rgba(26,26,46,0.88); border: 2px solid rgba(255,215,0,0.3);
+    border-radius: 16px; padding: 26px 30px; text-align: left; line-height: 1.8;
+    font-size: 1rem; backdrop-filter: blur(10px); animation: fadeUp 0.3s ease;
+    max-width: 700px; margin: 0 auto;
+  }
+  .panel.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .panel h3 { font-family: 'Bangers', cursive; font-size: 1.5rem; color: var(--yellow); margin-bottom: 10px; letter-spacing: 2px; }
+
+  .wip-note {
+    background: rgba(227,0,11,0.12); border: 2px solid var(--red);
+    border-radius: 14px; padding: 30px 36px; max-width: 600px; margin: 0 auto;
+    backdrop-filter: blur(10px);
+  }
+  .wip-title { font-family: 'Bangers', cursive; font-size: 2rem; color: var(--red); letter-spacing: 3px; display: block; margin-bottom: 12px; }
+  .wip-note p { color: #ff5555; font-size: 1.1rem; font-weight: 700; line-height: 1.7; text-align: center; }
+
+  .scroll-hint {
+    position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+    z-index: 2; display: flex; flex-direction: column; align-items: center;
+    gap: 5px; opacity: 0.65; animation: bounce 2s infinite;
+  }
+  .scroll-hint span { font-size: 0.7rem; letter-spacing: 2px; }
+  .scroll-hint-arrow { font-size: 1.3rem; }
+  @keyframes bounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(8px); } }
+
+  .dots-divider { display: flex; justify-content: center; gap: 10px; padding: 18px; background: var(--yellow); }
+  .dot { width: 18px; height: 18px; background: rgba(0,0,0,0.2); border-radius: 50%; }
+
+  [dir="rtl"] .panel { text-align: right; }
+  [dir="rtl"] .modal-box { direction: rtl; }
+
+  footer { background: #111; text-align: center; padding: 24px; font-size: 0.85rem; color: rgba(255,255,240,0.4); letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo" id="nav-logo">LEGO GAMES</div>
+  <div class="nav-btns">
+    <button class="btn-nav" id="lang-btn" onclick="toggleLang()">Arabic</button>
+    <button class="btn-nav" id="about-btn" onclick="openModal()"><span id="about-text">About</span></button>
+  </div>
+</nav>
+
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">x</button>
+    <div class="modal-avatar">MB</div>
+    <div class="modal-name">Mohamed Bekkaye</div>
+    <div class="modal-email">bekkayemed0@gmail.com</div>
+  </div>
+</div>
+
+<div id="games-container"></div>
+<footer id="footer">LEGO Games Website — Made with love by Mohamed Bekkaye</footer>
+
+<script>
+const games = [
+  { id:'lego-star-wars-1', year:'2005', pub:'Eidos Interactive',
+    en:{ title:'LEGO Star Wars:\nThe Video Game',
+         story:'Relive the Star Wars prequel trilogy in LEGO bricks! Battle through Episodes I, II, and III as Jedi knights, clone troopers, and iconic heroes. Collect studs, unlock characters, and experience the saga with classic LEGO humor.',
+         dev:"Developed by Traveller's Tales and published by Eidos Interactive, this game merged the LEGO brand with the Star Wars franchise for the first time. It launched in 2005 and became a massive hit, proving that licensed LEGO games could be a major commercial success and spawning the entire LEGO game series.",
+         tip:'Return to completed levels in Free Play mode — different characters unlock different secret areas. Smash absolutely everything you see, studs are hiding everywhere. Two-player co-op makes the game significantly more enjoyable.' },
+    ar:{ title:'ليغو حرب النجوم:\nلعبة الفيديو',
+         story:'أعش ثلاثية ما قبل حرب النجوم بشكل ليغو! قاتل عبر الحلقات I وII وIII كفرسان جيداي وجنود استنساخ وأبطال أسطوريين. اجمع المسامير وافتح الشخصيات واستمتع بالملحمة بأسلوب ليغو الفكاهي الكلاسيكي.',
+         dev:'طورت تارفيلرز تيلز ونشرتها إيدوس إنتراكتيف، دمجت هذه اللعبة ماركة ليغو مع امتياز حرب النجوم للمرة الأولى. أُطلقت عام 2005 وحققت نجاحاً كبيراً، مما أثبت أن ألعاب ليغو المرخصة يمكن أن تكون نجاحاً تجارياً كبيراً وأفرز سلسلة ألعاب ليغو بأكملها.',
+         tip:'عد إلى المستويات المكتملة في وضع اللعب الحر — الشخصيات المختلفة تفتح مناطق سرية مختلفة. حطم كل ما تراه، المسامير مخبأة في كل مكان. اللعب الثنائي يجعل اللعبة أكثر متعة.' }},
+  { id:'lego-star-wars-2', year:'2006', pub:'LucasArts',
+    en:{ title:'LEGO Star Wars II:\nThe Original Trilogy',
+         story:'Now play through the beloved original trilogy — Episodes IV, V, and VI. Fight as Luke Skywalker, Princess Leia, Han Solo, and Chewbacca against Darth Vader and the Galactic Empire. Build custom LEGO vehicles mid-level for new paths!',
+         dev:"Following the massive success of the first game, Traveller's Tales expanded the formula covering Episodes IV-VI. Published by LucasArts in 2006, this installment introduced the ability to build and ride custom LEGO vehicles and featured a much larger roster of characters.",
+         tip:'Use the vehicle build mechanic whenever you spot scattered bricks — built vehicles unlock new routes. Fill your stud bar completely on every level to earn True Jedi status. Use Force characters to move special gold objects blocking hidden passages.' },
+    ar:{ title:'ليغو حرب النجوم II:\nالثلاثية الأصلية',
+         story:'الآن العب عبر الثلاثية الأصلية المحبوبة — الحلقات IV وV وVI. قاتل كلوك سكاي ووكر والأميرة ليا وهان سولو وتشيويبكا ضد دارث فيدر والإمبراطورية. ابنِ مركبات ليغو مخصصة خلال المستوى لفتح مسارات جديدة!',
+         dev:'في أعقاب النجاح الهائل للعبة الأولى، وسّعت تارفيلرز تيلز الصيغة لتغطي الحلقات IV-VI. نُشرت بواسطة لوكاس آرتس عام 2006 وقدمت إمكانية بناء وقيادة مركبات ليغو مخصصة وضمت قائمة شخصيات أكبر بكثير.',
+         tip:'استخدم ميكانيكية بناء المركبات كلما رأيت مكعبات متناثرة. املأ شريط المسامير بالكامل على كل مستوى لتحقيق مكانة جيداي الحق. استخدم شخصيات القوة لتحريك الأشياء الذهبية الخاصة.' }},
+  { id:'lego-star-wars-complete', year:'2007', pub:'LucasArts',
+    en:{ title:'LEGO Star Wars:\nThe Complete Saga',
+         story:'The ultimate LEGO Star Wars experience — all six episodes in one massive package. From The Phantom Menace to Return of the Jedi with improved graphics, bonus levels, and over 160 unlockable characters. The definitive LEGO Star Wars collection.',
+         dev:"Traveller's Tales combined and remastered both previous LEGO Star Wars games into one definitive collection. Added new bonus levels, improved visuals, extra characters, and introduced online co-op play for the first time in the series.",
+         tip:'Start with original trilogy levels for an easier introduction, then tackle the prequel episodes. Unlock bounty hunters early — they can access special panels throughout all levels. The bonus levels hidden in each episode hub are among the most creative in the entire game.' },
+    ar:{ title:'ليغو حرب النجوم:\nالملحمة الكاملة',
+         story:'تجربة ليغو حرب النجوم المثالية — ست حلقات في حزمة ضخمة واحدة. من الشبح المهدد إلى عودة الجيداي مع رسومات محسّنة ومستويات إضافية وأكثر من 160 شخصية قابلة للفتح. مجموعة ليغو حرب النجوم النهائية.',
+         dev:'دمجت تارفيلرز تيلز وأعادت تأهيل كلتا لعبتي ليغو حرب النجوم في مجموعة نهائية واحدة. أضافت مستويات إضافية جديدة وتحسينات بصرية وشخصيات إضافية وقدمت اللعب التعاوني عبر الإنترنت للمرة الأولى.',
+         tip:'ابدأ بمستويات الثلاثية الأصلية لمقدمة أسهل. افتح صائدي المكافآت مبكراً — يمكنهم الوصول إلى لوحات خاصة في جميع المستويات. المستويات الإضافية المخفية في مركز كل حلقة من بين الأكثر إبداعاً في اللعبة.' }},
+  { id:'lego-indiana-jones-1', year:'2008', pub:'LucasArts',
+    en:{ title:'LEGO Indiana Jones:\nThe Original Adventures',
+         story:'Grab your whip and fedora! Relive the classic adventures across Raiders of the Lost Ark, Temple of Doom, and The Last Crusade. Solve ancient puzzles, dodge giant boulders, fight enemies, and discover legendary treasures — all in LEGO form.',
+         dev:"Released in 2008 to coincide with Kingdom of the Crystal Skull. Developed by Traveller's Tales and published by LucasArts, it introduced the iconic whip mechanic, archaeology building puzzles, and a character roster spanning all three original Indy films.",
+         tip:"Indy's whip grabs handles, attacks enemies, and swings across gaps — use it constantly. Always carry a shovel to dig up hidden items. In Free Play, bring academic characters like Henry Jones Sr. to unlock bookshelf puzzles." },
+    ar:{ title:'ليغو إنديانا جونز:\nالمغامرات الأصلية',
+         story:'امسك سوطك وقبعتك! أعش المغامرات الكلاسيكية عبر غزاة الصندوق المفقود ومعبد الهلاك والمغامرة الأخيرة. حل الألغاز القديمة وتجنب الصخور العملاقة واكتشف الكنوز الأسطورية في شكل ليغو.',
+         dev:'صدرت عام 2008 بالتزامن مع مملكة الجمجمة البلورية. طورتها تارفيلرز تيلز ونشرتها لوكاس آرتس، وقدمت ميكانيكية السوط الأيقونية وألغاز بناء الآثار وقائمة شخصيات تمتد عبر أفلام إندي الأصلية الثلاثة.',
+         tip:'سوط إندي يمسك المقابض ويهاجم الأعداء ويتأرجح عبر الفجوات — استخدمه باستمرار. احمل دائماً مجرفة لحفر العناصر المخفية. في اللعب الحر، أحضر شخصيات أكاديمية لفتح ألغاز الرفوف.' }},
+  { id:'lego-batman-1', year:'2008', pub:'Warner Bros.',
+    en:{ title:'LEGO Batman:\nThe Videogame',
+         story:'Gotham City erupts into chaos when the Joker, Penguin, Scarecrow, and iconic villains break free from Arkham Asylum. Play both sides — as Batman and Robin protecting the city, and as the villains themselves executing criminal masterplans.',
+         dev:"The first LEGO game not based on a specific movie, developed by Traveller's Tales and published by Warner Bros. in 2008. Introduced costume power-ups like the Magnetic Suit and Sonic Suit, and two separate fully playable story campaigns.",
+         tip:'Both Batman and Robin have multiple suits with unique powers — experiment with all of them. The villain campaign has different objectives from the hero campaign, so play both for full completion. The Sonic Suit shatters glass barriers blocking secret areas.' },
+    ar:{ title:'ليغو باتمان:\nلعبة الفيديو',
+         story:'تنفجر مدينة غوثام في فوضى عندما يهرب الجوكر والبطريق وفزاعة وأشرار أيقونيون من ملجأ أركهام. العب على الجانبين — كباتمان وروبن لحماية المدينة، وكالأشرار أنفسهم ينفذون مخططاتهم.',
+         dev:'أول لعبة ليغو غير مستندة إلى فيلم محدد، طورتها تارفيلرز تيلز ونشرتها وارنر برذرز عام 2008. قدمت بدلات القوى كالبدلة المغناطيسية والصوتية وحملتين قصصيتين منفصلتين كاملتين.',
+         tip:'لدى باتمان وروبن بدلات متعددة بقوى فريدة — جربها جميعها. لحملة الأشرار أهداف مختلفة عن حملة الأبطال، فالعب كليهما للإكمال الكامل. البدلة الصوتية تحطم حواجز الزجاج.' }},
+  { id:'lego-battles', year:'2009', pub:'Warner Bros.',
+    en:{ title:'LEGO Battles',
+         story:'A real-time strategy game unlike any other LEGO title! Command armies of LEGO knights, pirates, wizards, and astronauts. Build bases, gather resources, and crush your enemies in strategic combat — designed exclusively for Nintendo DS.',
+         dev:'Developed by Hellbent Games and published by Warner Bros. Interactive, LEGO Battles was a major departure from the action-adventure formula. It brought real-time strategy gameplay to the LEGO universe for the first time on Nintendo DS.',
+         tip:'Build resource collectors early and protect them — without bricks you cannot raise an army. Spread your forces rather than clustering them to avoid area attacks wiping out everything. Use hero units to counter enemy heroes first before fighting regular units.' },
+    ar:{ title:'ليغو باتلز',
+         story:'لعبة استراتيجية في الوقت الفعلي على خلاف أي لعبة ليغو أخرى! قُد جيوشاً من فرسان ليغو والقراصنة والسحرة ورواد الفضاء. ابنِ قواعد واجمع الموارد وسحق أعداءك في قتال استراتيجي — مصمم حصرياً لنينتندو DS.',
+         dev:'طورت هيلبنت غيمز ونشرتها وارنر برذرز، كانت ليغو باتلز انحرافاً عن صيغة الحركة والمغامرة، أحضرت الاستراتيجية في الوقت الفعلي إلى عالم ليغو للمرة الأولى على نينتندو DS.',
+         tip:'ابنِ جامعي الموارد مبكراً وحمهم جيداً. وزّع قواتك بدلاً من تجميعها لتجنب الهجمات الواسعة. استخدم وحدات الأبطال لمواجهة أبطال العدو أولاً.' }},
+  { id:'lego-indiana-jones-2', year:'2009', pub:'LucasArts',
+    en:{ title:'LEGO Indiana Jones 2:\nThe Adventure Continues',
+         story:'Play through Kingdom of the Crystal Skull plus revamped versions of all three original Indy adventures. New levels, new puzzles, and new characters continue to expand the LEGO Indiana Jones universe beyond the first game.',
+         dev:"A sequel by Traveller's Tales covering the 2008 film Kingdom of the Crystal Skull plus alternate level designs for the original trilogy. Published by LucasArts in 2009, it featured redesigned hub worlds and new side content.",
+         tip:'The Crystal Skull levels introduce alien artifact puzzles — look for glowing objects. Hub worlds hide bonus characters not available in story mode. The redesigned original trilogy sections contain different secrets from the first game, so explore thoroughly.' },
+    ar:{ title:'ليغو إنديانا جونز 2:\nالمغامرة مستمرة',
+         story:'العب عبر مملكة الجمجمة البلورية بالإضافة إلى نسخ مجددة من جميع مغامرات إندي الأصلية الثلاث. مستويات وألغاز وشخصيات جديدة تستمر في توسيع عالم ليغو إنديانا جونز.',
+         dev:'تكملة بواسطة تارفيلرز تيلز تغطي فيلم 2008 مملكة الجمجمة البلورية وتصميمات مستوى بديلة للثلاثية الأصلية. نُشرت عام 2009 وضمت عوالم مركزية معاد تصميمها ومحتوى جانبي جديداً.',
+         tip:'تقدم مستويات الجمجمة البلورية ألغاز قطع أثرية فضائية — ابحث عن الأشياء المتوهجة. عوالم المركز تخفي شخصيات إضافية غير متاحة في وضع القصة. أقسام الثلاثية الأصلية المعاد تصميمها تحتوي على أسرار مختلفة.' }},
+  { id:'lego-harry-potter-1', year:'2010', pub:'Warner Bros.',
+    en:{ title:'LEGO Harry Potter:\nYears 1-4',
+         story:'Enter Hogwarts School of Witchcraft and Wizardry! Relive the magic of the first four Harry Potter books — from the Philosopher\'s Stone to the Goblet of Fire. Cast spells, brew potions, ride broomsticks, and uncover secrets throughout the magical castle.',
+         dev:"Developed by Traveller's Tales and published by Warner Bros. in 2010, Hogwarts castle served as a massive explorable hub — the most expansive LEGO environment to that date. Introduced spell-casting mechanics and potion brewing as core gameplay systems.",
+         tip:'Explore every corner of Hogwarts — it is enormous and packed with hidden Gold Bricks. Attend every class to learn all spells; they are required to progress in certain areas. Use Hermione\'s bookshelf skill and Ron\'s rat to reach areas other characters cannot.' },
+    ar:{ title:'ليغو هاري بوتر:\nالسنوات 1-4',
+         story:'ادخل إلى مدرسة هوغوورتس للسحر والشعوذة! أعش سحر أول أربعة كتب هاري بوتر — من حجر الفيلسوف إلى كأس النار. القِ التعاويذ واصنع الجرعات واركب المكانس واكتشف الأسرار في القلعة السحرية.',
+         dev:'طورتها تارفيلرز تيلز ونشرتها وارنر برذرز عام 2010، كانت قلعة هوغوورتس بيئة ضخمة قابلة للاستكشاف — الأوسع في أي لعبة ليغو حتى ذلك الحين. قدمت ميكانيكيات إلقاء التعاويذ وصنع الجرعات كأنظمة لعب رئيسية.',
+         tip:'استكشف كل زاوية من هوغوورتس — إنها ضخمة ومليئة بالطوب الذهبي المخفي. احضر كل الفصول الدراسية لتعلم جميع التعاويذ. استخدم مهارة هيرميون ومهارة فأر رون للوصول إلى مناطق لا تستطيع الشخصيات الأخرى الوصول إليها.' }},
+  { id:'lego-star-wars-3', year:'2011', pub:'LucasArts',
+    en:{ title:'LEGO Star Wars III:\nThe Clone Wars',
+         story:'Based on the beloved Clone Wars animated series! Fight through the Clone Wars as Anakin Skywalker, Obi-Wan Kenobi, Ahsoka Tano, and many more. Command armies of clone troopers in large-scale ground battles across iconic planets.',
+         dev:"Developed by Traveller's Tales and published by LucasArts in 2011, this was the first LEGO game with base-building and large-scale battlefield mechanics. It drew from the animated TV series rather than films, introducing fan-favourite Ahsoka Tano to LEGO.",
+         tip:'Base-building sections require controlling multiple areas simultaneously — prioritise capturing command posts quickly. Switch between characters often; each Jedi has a unique Force ability. Collect all minikits and gold bricks to unlock special bonus levels.' },
+    ar:{ title:'ليغو حرب النجوم III:\nحروب الاستنساخ',
+         story:'مستندة إلى مسلسل حروب الاستنساخ الرسومي المحبوب! قاتل عبر معارك حروب الاستنساخ كأناكين سكاي ووكر وأوبي وان كينوبي وأهسوكا تانو وغيرهم. قُد جيوشاً من جنود الاستنساخ في معارك واسعة النطاق.',
+         dev:'طورتها تارفيلرز تيلز ونشرتها لوكاس آرتس عام 2011، أول لعبة ليغو تضم ميكانيكيات بناء القواعد والمعارك الضخمة. استقت المحتوى من المسلسل الرسومي ومقدمةً أهسوكا تانو إلى عالم ليغو.',
+         tip:'أقسام بناء القواعد تتطلب التحكم في مناطق متعددة في وقت واحد — أعطِ الأولوية للاستيلاء السريع. بدّل بين الشخصيات كثيراً؛ لكل جيداي قدرة قوة فريدة. اجمع جميع المجموعات الصغيرة لفتح مستويات إضافية.' }},
+  { id:'lego-pirates-caribbean', year:'2011', pub:'Disney Interactive',
+    en:{ title:'LEGO Pirates of\nthe Caribbean',
+         story:'Set sail with Captain Jack Sparrow! Play through all four Pirates of the Caribbean films. Battle sea monsters, navigate treacherous ships, search for buried treasure, and encounter supernatural curses across the high seas in classic LEGO style.',
+         dev:"Developed by Traveller's Tales and published by Disney Interactive in 2011, released alongside On Stranger Tides. The first LEGO game based on a Disney property, it introduced naval ship sections and underwater exploration environments.",
+         tip:"Jack Sparrow's compass reveals nearby hidden Gold Bricks — use it constantly when exploring hub areas. Ship navigation sections require precise steering; don't rush them. Bring characters with dynamite to blast open cracked walls hiding secret rooms." },
+    ar:{ title:'ليغو قراصنة الكاريبي',
+         story:'أبحر مع الكابتن جاك سبارو! العب عبر جميع أفلام قراصنة الكاريبي الأربعة. قاتل وحوش البحر وتنقل على سفن خطرة وابحث عن الكنوز المدفونة وواجه اللعنات الخارقة عبر أعالي البحار.',
+         dev:'طورتها تارفيلرز تيلز ونشرتها ديزني إنتراكتيف عام 2011. أول لعبة ليغو مستندة إلى ملكية ديزني، قدمت أقسام الإبحار وبيئات الاستكشاف تحت الماء.',
+         tip:'تكشف بوصلة جاك سبارو الطوب الذهبي المخفي القريب — استخدمها باستمرار. أقسام الملاحة البحرية تتطلب توجيهاً دقيقاً. أحضر شخصيات لديها ديناميت لتفجير الجدران المتشققة.' }},
+  { id:'lego-harry-potter-2', year:'2011', pub:'Warner Bros.',
+    en:{ title:'LEGO Harry Potter:\nYears 5-7',
+         story:'The war against Voldemort reaches its epic conclusion. Fight through the Order of the Phoenix, the Half-Blood Prince, and the final battle of the Deathly Hallows. Darker themes and more intense LEGO Harry Potter action than ever before.',
+         dev:"Sequel developed by Traveller's Tales and released in 2011. Adapted the final four Harry Potter films with a darker tone and more complex spell dueling mechanics. Introduced character ability tokens that greatly extended replayability.",
+         tip:'Dark magic characters interact with special dark objects that regular wizards cannot — always bring one. The Deathly Hallows section has entirely new mechanics; pay close attention to the tutorials. Collect character tokens in the environment to unlock rarer characters.' },
+    ar:{ title:'ليغو هاري بوتر:\nالسنوات 5-7',
+         story:'تصل الحرب ضد فولدمورت إلى خاتمتها الملحمية. قاتل عبر وسام طائر العنقاء والأمير الهجين والمعركة الأخيرة لهالو الموت. موضوعات أكثر قتامة وحركة ليغو أكثر شدة من أي وقت مضى.',
+         dev:'تكملة طورتها تارفيلرز تيلز وصدرت عام 2011. تكيفت مع أفلام هاري بوتر الأربعة الأخيرة بنبرة أكثر قتامة وميكانيكيات مبارزة أكثر تعقيداً. قدمت رموز قدرة الشخصيات.',
+         tip:'شخصيات السحر الأسود تتفاعل مع أشياء مظلمة خاصة — احضر دائماً واحداً. يتضمن قسم هالو الموت ميكانيكيات جديدة كلياً؛ انتبه جيداً للدروس. اجمع رموز الشخصيات لفتح شخصيات أكثر ندرة.' }},
+  { id:'lego-batman-2', year:'2012', pub:'Warner Bros.',
+    en:{ title:'LEGO Batman 2:\nDC Super Heroes',
+         story:'The Joker teams up with Lex Luthor to take over Gotham City and beyond. For the first time, the entire Justice League arrives — Superman, Wonder Woman, The Flash, and Green Lantern all join the fight in the first open-world LEGO game!',
+         dev:'A massive leap forward for the series developed by TT Games in 2012. The first LEGO game with fully voiced characters, ending silent LEGO storytelling. Also the first with a true open-world city freely explorable outside of story levels.',
+         tip:'Superman can fly anywhere instantly — unlock him early to speed up exploration. Use the Bat-computer in the Batcave to track all Gold Brick locations. Hero and villain characters access different areas, so mix your team wisely.' },
+    ar:{ title:'ليغو باتمان 2:\nأبطال DC الخارقون',
+         story:'يتحالف الجوكر مع ليكس لوثر للاستيلاء على غوثام وما هو أبعد. للمرة الأولى تصل رابطة العدالة بأكملها — سوبرمان وامرأة العجائب وذا فلاش وغرين لانترن في أول لعبة ليغو بعالم مفتوح!',
+         dev:'قفزة ضخمة للأمام في السلسلة طورتها TT Games عام 2012. أول لعبة ليغو بشخصيات ذات أصوات كاملة، وأول لعبة بمدينة عالم مفتوح حقيقي قابلة للاستكشاف بحرية.',
+         tip:'يمكن لسوبرمان الطيران في أي مكان فوراً — افتحه مبكراً لتسريع الاستكشاف. استخدم الحاسوب في الكهف لتتبع مواقع الطوب الذهبي. الشخصيات البطلة والشريرة تصل إلى مناطق مختلفة.' }},
+  { id:'lego-lord-of-rings', year:'2012', pub:'Warner Bros.',
+    en:{ title:'LEGO The Lord\nof the Rings',
+         story:'One ring to rule them all — in LEGO form! Journey through all three Lord of the Rings films across a massive open-world Middle-earth, from the peaceful Shire all the way to the fires of Mount Doom in Mordor.',
+         dev:"Developed by Traveller's Tales and released in 2012 using actual audio dialogue from Peter Jackson's films. The open-world Middle-earth hub was the largest explorable environment in the series at the time.",
+         tip:'Each Fellowship member has a unique essential skill — Gimli breaks cracked floors, Legolas targets distant switches, Sam uses his rope. Forge powerful items at the blacksmith using mithril bricks found in treasure chests. Explore all of Middle-earth for hidden characters.' },
+    ar:{ title:'ليغو سيد الخواتم',
+         story:'خاتم واحد يحكمهم جميعاً — في شكل ليغو! سافر عبر أفلام سيد الخواتم الثلاثة في أرض الوسط المفتوحة الضخمة، من الشاير الهادئ حتى نيران جبل القدر في موردور.',
+         dev:'طورتها تارفيلرز تيلز وصدرت عام 2012 مستخدمةً حوارات صوتية فعلية من أفلام بيتر جاكسون. كان مركز أرض الوسط أكبر بيئة قابلة للاستكشاف في السلسلة آنذاك.',
+         tip:'لكل عضو من الرفقة مهارة أساسية فريدة — غيملي يكسر الأرضيات، ليغولاس يستهدف المفاتيح البعيدة، سام يستخدم حبله. اصنع عناصر قوية في الحدادة من طوب الميثريل.' }},
+  { id:'lego-city-undercover', year:'2013', pub:'Nintendo',
+    en:{ title:'LEGO City\nUndercover',
+         story:'You are Chase McCain, an undercover cop on a mission to bring down criminal mastermind Rex Fury. Explore a massive open LEGO City, go undercover in hilarious disguises, and use detective skills to solve crimes across the entire city.',
+         dev:'A Wii U exclusive developed by TT Fusion and published by Nintendo in 2013. The first original-story LEGO game with an adult protagonist and cinematic-quality comedy writing. Later ported to other platforms in 2017.',
+         tip:'The open-world LEGO City is enormous — unlock fast-travel points as early as possible. Each disguise has a unique special ability; experiment with all of them. The game is full of film parody jokes and pop-culture references throughout.' },
+    ar:{ title:'ليغو سيتي أندركوفر',
+         story:'أنت تشيس ماكين، ضابط سري في مهمة للقبض على عقل الجريمة ريكس فيوري. استكشف مدينة ليغو المفتوحة الضخمة وتنكر في أزياء مضحكة واستخدم مهارات التحقيق لحل الجرائم.',
+         dev:'حصري لـ Wii U طورته TT Fusion ونشرته نينتندو عام 2013. أول لعبة ليغو ذات قصة أصلية بطلها بالغ وكتابة كوميدية بجودة سينمائية. نُقلت لمنصات أخرى عام 2017.',
+         tip:'مدينة ليغو ضخمة جداً — افتح نقاط الانتقال السريع في أقرب وقت. لكل زي قدرة خاصة فريدة. اللعبة مليئة بنكات محاكاة الأفلام وإشارات الثقافة الشعبية.' }},
+  { id:'lego-marvel-1', year:'2013', pub:'Warner Bros.',
+    en:{ title:'LEGO Marvel\nSuper Heroes',
+         story:"Earth's Mightiest Heroes assemble in LEGO bricks! Iron Man, Spider-Man, Thor, Hulk, Captain America, and over 150 Marvel characters team up to stop Galactus from consuming Earth. Explore a massive open-world LEGO Manhattan.",
+         dev:'Developed by TT Games and published by Warner Bros. in 2013. The most character-rich LEGO game at that time with 155 playable characters and a fully explorable open-world Manhattan — setting a new benchmark for the series.',
+         tip:"Spider-Man's web-pull and Hulk's smash attacks unlock areas blocked by web barriers and cracked floors. Explore every rooftop in Manhattan — Gold Bricks and bonus missions are scattered everywhere. Unlock Thor early for his flying ability." },
+    ar:{ title:'ليغو مارفل\nسوبر هيروز',
+         story:'أعظم أبطال الأرض يتجمعون في مكعبات ليغو! آيرون مان وسبايدر مان وثور وهالك وكابتن أمريكا وأكثر من 150 شخصية مارفل يتحدون لإيقاف غالاكتوس. استكشف مانهاتن ليغو المفتوحة الضخمة.',
+         dev:'طورتها TT Games ونشرتها وارنر برذرز عام 2013. أغنى لعبة ليغو بالشخصيات آنذاك مع 155 شخصية قابلة للعب ومانهاتن مفتوحة بالكامل — وضعت معياراً جديداً للسلسلة.',
+         tip:'سحب الويب لسبايدر مان وتحطيم هالك يفتحان مناطق محجوبة. استكشف كل سطح في مانهاتن. افتح ثور مبكراً لقدرته على الطيران.' }},
+  { id:'lego-movie-1', year:'2014', pub:'Warner Bros.',
+    en:{ title:'The LEGO Movie\nVideogame',
+         story:"Everything is awesome! Play as Emmet, an ordinary LEGO minifig mistakenly identified as the most extraordinary person and key to saving the world. Follow the film's story and meet the eccentric Master Builders across vibrant LEGO worlds.",
+         dev:"Developed by TT Fusion and published by Warner Bros. in 2014 alongside the film. The first LEGO game tied to an original LEGO property. Introduced the Instruction Build mechanic where players follow actual step-by-step LEGO construction sequences.",
+         tip:"Collect Master Builder tokens throughout each level — they unlock the best builders. Instruction Build sections are timed, so memorise the sequences. Batman's Batarang and Wyldstyle's parkour ability open the most secret areas." },
+    ar:{ title:'لعبة فيديو فيلم ليغو',
+         story:'كل شيء رائع! العب دور إيميت، دمية ليغو عادية يُعرَّف عليها خطأً بأنها المفتاح لإنقاذ العالم. اتبع قصة الفيلم وتعرف على البنائين الرئيسيين الغريبي الأطوار عبر عوالم ليغو النابضة بالحياة.',
+         dev:'طورتها TT Fusion ونشرتها وارنر برذرز عام 2014 بالتزامن مع الفيلم. أول لعبة ليغو مرتبطة بملكية ليغو أصلية. قدمت ميكانيكية البناء بالتعليمات.',
+         tip:'اجمع رموز البنائين الرئيسيين في كل مستوى. أقسام البناء بالتعليمات محددة بوقت. بوميرانغ باتمان وباركور ويلدستايل يفتحان أكثر المناطق السرية.' }},
+  { id:'lego-hobbit', year:'2014', pub:'Warner Bros.',
+    en:{ title:'LEGO The Hobbit',
+         story:'Follow Bilbo Baggins and the company of dwarves on their quest to reclaim the Lonely Mountain from the fearsome dragon Smaug. Experience two Hobbit films — An Unexpected Journey and The Desolation of Smaug — in LEGO form.',
+         dev:"Developed by TT Games and published by Warner Bros. in 2014. Used actual film audio for authenticity. Featured a unique item-combination crafting system where players combined materials collected across Middle-earth to forge special tools and weapons.",
+         tip:'The crafting system is central to progression — always collect raw materials even if you do not need them immediately. Each dwarf companion has a unique specialty. Revisit completed levels after finding more dwarves for 100% completion.' },
+    ar:{ title:'ليغو الهوبيت',
+         story:'اتبع بيلبو باغينز وشركة الأقزام في مسعاهم لاستعادة الجبل الوحيد من التنين سموغ. عايش فيلمي الهوبيت — رحلة غير متوقعة وتضييق سموغ — في شكل ليغو.',
+         dev:'طورتها TT Games ونشرتها وارنر برذرز عام 2014. استخدمت صوت الفيلم الفعلي. ضمت نظام صناعة جمع فريد حيث يجمع اللاعبون المواد لصياغة أدوات وأسلحة خاصة.',
+         tip:'نظام الصناعة مركزي للتقدم — اجمع دائماً المواد الخام. لكل قزم تخصص فريد. أعد زيارة المستويات المكتملة بعد العثور على المزيد من الأقزام.' }},
+  { id:'lego-batman-3', year:'2014', pub:'Warner Bros.',
+    en:{ title:'LEGO Batman 3:\nBeyond Gotham',
+         story:"The adventure leaves Earth behind! Brainiac is using Lantern Rings to shrink the world's cities. Batman must team up with the entire Justice League and travel to outer space to stop him before Earth itself is miniaturised.",
+         dev:'Developed by TT Games and published by Warner Bros. in 2014. The most cosmically ambitious Batman entry, featuring space-set levels inspired by all seven Lantern Corps. Featured the largest roster of DC characters in the series to that point.',
+         tip:'Each of the seven Lantern Corps has unique ring powers required for specific puzzles — collect rings from all Corps. Use Watchtower hub terminals to track your completion percentage. Flying characters save enormous time in the space open world.' },
+    ar:{ title:'ليغو باتمان 3:\nما وراء غوثام',
+         story:'تغادر المغامرة الأرض! يستخدم برينياك خواتم الفانوس لتصغير مدن العالم. يجب على باتمان التحالف مع رابطة العدالة والسفر إلى الفضاء لإيقافه قبل أن تُصغَّر الأرض نفسها.',
+         dev:'طورتها TT Games ونشرتها وارنر برذرز عام 2014. الأكثر طموحاً كونياً بمستويات فضائية من فيلق الفانوس السبعة. ضم أكبر قائمة من شخصيات DC في السلسلة حتى تلك اللحظة.',
+         tip:'لكل فيلق من الفانوس السبعة قوى خاتم فريدة — اجمع الخواتم من جميع الفيالق. استخدم محطات المركز لتتبع نسبة الإكمال. الشخصيات الطائرة توفر وقتاً هائلاً.' }},
+  { id:'lego-ninjago-nindroids', year:'2014', pub:'Warner Bros.',
+    en:{ title:'LEGO Ninjago:\nNindroids (Handheld)',
+         story:'The Overlord has returned as a digital virus and is building an army of deadly Nindroids — robotic ninja warriors. The ninja team must battle across Ninjago City to stop the digital threat before it consumes the entire world.',
+         dev:'Developed by TT Fusion and published by Warner Bros. in 2014 as a handheld title for Nintendo 3DS and PlayStation Vita. Based on the third season of the animated series, featuring touch controls and a linear adventure structure.',
+         tip:'Handheld touch controls allow more precise environment interaction. Alternate between characters when elemental cooldowns are active. Unlock Zane\'s Nindroid form early — it has the strongest attack combinations in the game.' },
+    ar:{ title:'ليغو نينجاغو:\nنيندرويدز (محمول)',
+         story:'عاد الأوفرلورد كفيروس رقمي ويبني جيشاً من النيندرويدز المميتين. يجب على فريق النينجا القتال عبر مدينة نينجاغو لإيقاف التهديد الرقمي قبل أن يبتلع العالم.',
+         dev:'طورتها TT Fusion ونشرتها وارنر برذرز عام 2014 كعنوان محمول لنينتندو 3DS وبلايستيشن فيتا. مستندة إلى الموسم الثالث من المسلسل الرسومي.',
+         tip:'عناصر تحكم اللمس تتيح تفاعلاً أكثر دقة مع البيئة. بدّل بين الشخصيات عند نشاط فترات التبريد. افتح شكل نيندرويد لـ زين مبكراً.' }},
+  { id:'lego-jurassic-world', year:'2015', pub:'Warner Bros.',
+    en:{ title:'LEGO Jurassic\nWorld',
+         story:'Welcome to Jurassic Park — and Jurassic World! Relive all four Jurassic films in LEGO form. Play as both humans AND dinosaurs, including T-Rex, Triceratops, and Velociraptors. Explore Isla Nublar and Isla Sorna in an open-world adventure.',
+         dev:'Developed by TT Fusion and published by Warner Bros. in 2015. A landmark entry — for the first time players could control fully playable dinosaurs. Used dialogue from all four films for authenticity.',
+         tip:"Playing as dinosaurs is essential — certain areas are only accessible to specific species. The amber brick system lets you unlock dinosaurs for the hub paddocks. Use the raptor's speed and the T-Rex's roar to solve the most satisfying puzzles." },
+    ar:{ title:'ليغو عالم جوراسيك',
+         story:'مرحباً بكم في حديقة جوراسيك — وعالم جوراسيك! أعش جميع أفلام جوراسيك الأربعة في ليغو. العب دور البشر والديناصورات معاً بما في ذلك تي-ريكس وثلاثي القرون وفيلوسيرابتور. استكشف الجزيرتين في عالم مفتوح.',
+         dev:'طورتها TT Fusion ونشرتها وارنر برذرز عام 2015. إدخال بارز — للمرة الأولى يمكن للاعبين التحكم في ديناصورات قابلة للعب بالكامل. استخدمت حوارات من الأفلام الأربعة.',
+         tip:'اللعب كديناصورات ضروري — بعض المناطق لا يمكن الوصول إليها إلا لأنواع محددة. نظام طوب العنبر يفتح الديناصورات للأحظية. استخدم سرعة الرابتور وزئير تي-ريكس.' }},
+  { id:'lego-dimensions', year:'2015', pub:'Warner Bros.',
+    en:{ title:'LEGO Dimensions',
+         story:'Dimensions collide as Batman, Gandalf, and Wyldstyle are sucked through a vortex into a world where all LEGO universes merge. Play across DC Comics, Lord of the Rings, The LEGO Movie, Doctor Who, Ghostbusters, and dozens more iconic worlds.',
+         dev:'An innovative toys-to-life game developed by TT Games and published by Warner Bros. in 2015. Players purchased real LEGO expansion packs unlocking new in-game content. The most ambitious and cross-franchise LEGO project ever attempted.',
+         tip:'The starter pack is fully playable on its own, but expansion packs dramatically expand content. Build vehicles according to instructions — they can be rebuilt into three configurations each with unique abilities. Gateway portals lead to mini-worlds for each franchise.' },
+    ar:{ title:'ليغو ديمنشنز',
+         story:'تتصادم الأبعاد عندما يُسحب باتمان وغاندالف وويلدستايل عبر دوامة إلى عالم تندمج فيه جميع عوالم ليغو. العب عبر DC كوميكس وسيد الخواتم والدكتور هو وأصحاب الأشباح وعشرات العوالم الأيقونية الأخرى.',
+         dev:'لعبة مبتكرة من الألعاب إلى الحياة طورتها TT Games ونشرتها وارنر برذرز عام 2015. اشترى اللاعبون حزم توسع حقيقية تفتح محتوى جديداً. أطموح مشروع ليغو متعدد الامتيازات على الإطلاق.',
+         tip:'حزمة البداية قابلة للعب بالكامل وحدها. المركبات يمكن إعادة بنائها في ثلاثة تكوينات مختلفة. البوابات تؤدي إلى عوالم صغيرة منفصلة لكل امتياز.' }},
+  { id:'lego-ninjago-shadow-ronin', year:'2015', pub:'Warner Bros.',
+    en:{ title:'LEGO Ninjago:\nShadow of Ronin (Handheld)',
+         story:"A mysterious villain named Ronin has stolen the ninja's memories using an ancient weapon. With their powers wiped, the ninja must piece together who they are and recover their elemental abilities to stop Ronin's dark army.",
+         dev:'Developed by TT Fusion and published by Warner Bros. in 2015 as a Nintendo 3DS exclusive. Featured an original story not directly from the TV series, with fully voiced characters and new elemental combat mechanics.',
+         tip:"Recovering the ninja's memories unlocks their full elemental power combos — prioritise memory restoration missions. Each level contains hidden memory fragments. Elemental powers chain together for powerful combination attacks; learn the chain timings for boss fights." },
+    ar:{ title:'ليغو نينجاغو:\nظل رونين (محمول)',
+         story:'شرير غامض يدعى رونين سرق ذكريات النينجا باستخدام سلاح قديم. مع محو قواهم، يجب على النينجا معرفة هويتهم واستعادة قدراتهم العنصرية لإيقاف جيش رونين المظلم.',
+         dev:'طورتها TT Fusion ونشرتها وارنر برذرز عام 2015 كحصري لنينتندو 3DS. ضمت قصة أصلية غير مستمدة من المسلسل مع شخصيات ذات أصوات كاملة وميكانيكيات قتال عنصرية جديدة.',
+         tip:'استعادة الذكريات تفتح تركيبات القوة العنصرية الكاملة. يحتوي كل مستوى على شظايا ذاكرة مخفية. القوى العنصرية تتسلسل لهجمات مجمعة قوية.' }},
+  { id:'lego-marvel-avengers', year:'2016', pub:'Warner Bros.',
+    en:{ title:"LEGO Marvel's\nAvengers",
+         story:"Assemble! Relive the MCU's Avengers films from the original Avengers through Age of Ultron, plus bonus content from Captain America: The First Avenger, Iron Man 3, Thor: The Dark World, and Captain America: The Winter Soldier.",
+         dev:'Developed by TT Games and published by Warner Bros. in 2016. The first LEGO game to directly adapt MCU storylines using actual film voice recordings. Featured team combination attacks where two Avengers combine powers for devastating combo moves.',
+         tip:'Team combination attacks deal massive damage — learn the best character pairings. Open-world hubs span New York, Asgard, and South Africa. Collect Gwenpool mission bricks to unlock some of the most bizarre and funny bonus content in the game.' },
+    ar:{ title:'ليغو مارفل أفينجرز',
+         story:'اجتمعوا! أعيشوا أفلام أفنجرز في MCU من الأفنجرز الأصلي إلى عصر ألترون، بالإضافة إلى محتوى إضافي من أفلام كابتن أمريكا وآيرون مان وثور.',
+         dev:'طورتها TT Games ونشرتها وارنر برذرز عام 2016. أول لعبة ليغو تتكيف مباشرة مع قصص MCU باستخدام تسجيلات صوتية فعلية. ضمت هجمات مجمع الفريق.',
+         tip:'هجمات مجمع الفريق تلحق ضرراً هائلاً — تعلم أفضل أزواج الشخصيات. المراكز تمتد عبر نيويورك وأسغارد وجنوب أفريقيا. اجمع طوب مهمة غوينبول لمحتوى إضافي مضحك.' }},
+  { id:'lego-star-wars-force-awakens', year:'2016', pub:'Warner Bros.',
+    en:{ title:'LEGO Star Wars:\nThe Force Awakens',
+         story:"The Force awakens — in LEGO! Play through Episode VII with Rey, Finn, Han Solo, and the Resistance as they battle the First Order and Kylo Ren. Exclusive story content bridges the gap between Return of the Jedi and this film.",
+         dev:'Developed by TT Games and published by Warner Bros. in 2016. Returned LEGO to Star Wars after five years and introduced major innovations including multi-build mechanics where players choose between different LEGO constructions, and blaster cover-shooting sections.',
+         tip:"Multi-build spots let you construct different objects from the same bricks — try all variations as some unlock secret paths. Blaster cover sections are unique to this game; flank enemies to finish them faster. Rey's staff and Finn's blaster open new types of puzzles." },
+    ar:{ title:'ليغو حرب النجوم:\nصحوة القوة',
+         story:'القوة تستيقظ — في ليغو! العب عبر الحلقة السابعة مع ري وفين وهان سولو والمقاومة بينما يقاتلون النظام الأول وكايلو رن. محتوى قصة حصري يسد الفجوة الزمنية.',
+         dev:'طورتها TT Games ونشرتها وارنر برذرز عام 2016. أعادت ليغو إلى حرب النجوم بعد خمس سنوات وقدمت ميكانيكيات البناء المتعدد وأقسام إطلاق النار من وراء الغطاء.',
+         tip:'نقاط البناء المتعدد تتيح إنشاء أشياء مختلفة من نفس المكعبات — جرب جميع المتغيرات. أقسام الغطاء بالمسدسات فريدة لهذه اللعبة. قدرات ري وفين الجديدة تغطي أنواعاً جديدة من الألغاز.' }},
+  { id:'lego-worlds', year:'2017', pub:'Warner Bros.',
+    en:{ title:'LEGO Worlds',
+         story:'Build, explore, and create anything you can imagine! LEGO Worlds is a massive sandbox where every landscape is made of LEGO bricks. Discover procedurally generated worlds, ride creatures, terraform environments, and build incredible structures without limits.',
+         dev:'Developed by TT Games and published by Warner Bros. in 2017 as a Minecraft competitor. Exited early access after years of development, offering the most creative freedom ever in a LEGO title. Introduced procedural world generation and a fully free-form building system.',
+         tip:'Collect gold bricks in early worlds to unlock better tools — the discovery tool especially improves with more bricks. Riding creatures gives unique traversal abilities; tame animals early. The copy tool is invaluable for replicating complex structures you find in the world.' },
+    ar:{ title:'ليغو وورلدز',
+         story:'ابنِ واستكشف وأنشئ أي شيء يمكنك تخيله! ليغو وورلدز صندوق رمل ضخم حيث كل منظر طبيعي مصنوع من مكعبات ليغو. اكتشف عوالم مولّدة إجرائياً واركب المخلوقات وشكّل البيئات دون حدود.',
+         dev:'طورتها TT Games ونشرتها وارنر برذرز عام 2017 كمنافس لمايكراكفت. خرجت من الوصول المبكر بعد سنوات من التطوير، مقدمةً أكبر قدر من الحرية الإبداعية في أي عنوان ليغو.',
+         tip:'اجمع الطوب الذهبي في العوالم الأولى لفتح أدوات أفضل. ركوب المخلوقات يمنح قدرات تنقل فريدة. أداة النسخ لا تقدر بثمن لتكرار الهياكل المعقدة.' }},
+  { id:'lego-ninjago-movie', year:'2017', pub:'Warner Bros.',
+    en:{ title:'The LEGO Ninjago\nMovie Video Game',
+         story:"Lloyd and the Secret Ninja Force defend Ninjago City from the evil warlord Garmadon — who happens to be Lloyd's father. Based on The LEGO Ninjago Movie, battle through vibrant locations while discovering the true meaning of being a ninja.",
+         dev:'Developed by TT Fusion and published by Warner Bros. in 2017 alongside the film. A fully console-quality game following the movie plot with a new combat system focused on combo chains and elemental power finishers.',
+         tip:"Each ninja's elemental power triggers by filling the combo meter — keep attacking without getting hit. Explore every corner of Ninjago City hub; collectibles are hidden on rooftops and in alleyways. Save Lloyd's Green Ninja form for the toughest encounters." },
+    ar:{ title:'لعبة فيديو فيلم ليغو نينجاغو',
+         story:'يدافع لويد وقوة النينجا السرية عن مدينة نينجاغو من اللورد الحرب غارمادون — والد لويد نفسه. مستندة إلى فيلم ليغو نينجاغو، قاتل عبر مواقع نابضة بالحياة.',
+         dev:'طورتها TT Fusion ونشرتها وارنر برذرز عام 2017 بالتزامن مع الفيلم. لعبة ذات جودة وحدة تحكم كاملة بنظام قتال جديد يركز على سلاسل المجمعات ومنهيات القوة العنصرية.',
+         tip:'يتم تفعيل القوة العنصرية بملء عداد المجمع — استمر في الهجوم دون التعرض للضرر. استكشف كل زاوية من المركز. احتفظ بشكل النينجا الأخضر للويد للمواجهات الأصعب.' }},
+  { id:'lego-marvel-2', year:'2017', pub:'Warner Bros.',
+    en:{ title:'LEGO Marvel\nSuper Heroes 2',
+         story:'Kang the Conqueror has pulled cities from different time periods into one massive realm called Chronopolis. Spider-Man, Thor, Captain Marvel, Black Panther, and the Guardians of the Galaxy must unite across time to stop him.',
+         dev:'Developed by TT Games and published by Warner Bros. in 2017. Introduced time manipulation mechanics for puzzle solving. The open-world Chronopolis hub combined medieval England, Wild West, ancient Egypt, Manhattan, and more into one seamless map.',
+         tip:'Time manipulation is used in nearly every major puzzle — learn which objects can be aged forward or backward. Chronopolis crosses multiple eras; use the map heavily. Captain Marvel has significantly higher power than most characters, ideal for combat sections.' },
+    ar:{ title:'ليغو مارفل\nسوبر هيروز 2',
+         story:'سحب كانغ الغازي مدناً من فترات زمنية مختلفة في مملكة ضخمة واحدة تسمى كرونوبوليس. يجب على سبايدر مان وثور وكابتن مارفل وبلاك بانثر وحراس المجرة التوحد عبر الزمن.',
+         dev:'طورتها TT Games ونشرتها وارنر برذرز عام 2017. قدمت ميكانيكيات التلاعب بالوقت لحل الألغاز. جمع مركز كرونوبوليس مناطق من عصور متعددة في خريطة واحدة سلسة.',
+         tip:'التلاعب بالوقت يُستخدم في كل لغز رئيسي تقريباً. كرونوبوليس تعبر عصوراً متعددة؛ استخدم الخريطة بكثافة. مستوى قوة كابتن مارفل أعلى بشكل ملحوظ من معظم الشخصيات.' }},
+  { id:'lego-incredibles', year:'2018', pub:'Warner Bros.',
+    en:{ title:'LEGO The\nIncredibles',
+         story:"The Parr family returns to heroism in LEGO! Play through both Incredibles films. Use Mr. Incredible's strength, Elastigirl's stretch, Violet's force fields, Dash's speed, and baby Jack-Jack's explosive and unpredictable new powers.",
+         dev:'Developed by TT Fusion and published by Warner Bros. in 2018 alongside Incredibles 2. Featured Municiberg as an open-world hub and introduced family team-up moves where the Parr family members combine their unique powers for spectacular joint attacks.',
+         tip:"Jack-Jack's randomised powers make him potentially the most powerful character — keep him in your party. Family team-up attacks deal the most damage but require all four family members. Violet's invisibility is essential for sneaking past laser grids in secret areas." },
+    ar:{ title:'ليغو المذهلون',
+         story:'تعود عائلة بار إلى البطولة في ليغو! العب عبر كلا فيلمي المذهلون. استخدم قوة Mr. Incredible ومد إيلاستيغيرل ومجالات قوة بنفسجية وسرعة داش والقوى المتفجرة لجاك جاك.',
+         dev:'طورتها TT Fusion ونشرتها وارنر برذرز عام 2018 بالتزامن مع المذهلون 2. ضمت موني سيتي كمركز وقدمت حركات التعاون العائلي.',
+         tip:'قوى جاك جاك العشوائية تجعله ربما الأقوى — احتفظ به في فريقك. هجمات التعاون العائلي تلحق أكبر ضرر لكن تتطلب جميع أفراد العائلة. إخفاء بنفسجية ضروري لأقسام الليزر.' }},
+  { id:'lego-dc-supervillains', year:'2018', pub:'Warner Bros.',
+    en:{ title:'LEGO DC\nSuper-Villains',
+         story:'For the first time, YOU are the villain! Create your own custom villain and join the Legion of Doom — the Joker, Lex Luthor, Harley Quinn, and the most notorious DC bad guys. Only the villains can save the day when imposters arrive.',
+         dev:'Developed by TT Games and published by Warner Bros. in 2018. The first LEGO game with full villain protagonist focus, featuring a deep character customisation system. Harley Quinn, Joker, and Lex Luthor were the main narrative leads for the first time.',
+         tip:'Invest time in the character creator — more powers on your custom villain means more areas accessible. Harley Quinn\'s acrobatics and Joker\'s laugh bombs are the most versatile abilities. Unlock fast-travel in the Legion of Doom hall to access all hub locations quickly.' },
+    ar:{ title:'ليغو DC سوبر-أشرار',
+         story:'للمرة الأولى، أنت الشرير! أنشئ شريرك المخصص وانضم إلى فيلق الدمار — الجوكر وليكس لوثر وهارلي كوين وأشهر أشرار DC. الأشرار وحدهم يمكنهم إنقاذ اليوم عند وصول المزيفين.',
+         dev:'طورتها TT Games ونشرتها وارنر برذرز عام 2018. أول لعبة ليغو تركز بالكامل على بطل الشرير مع نظام تخصيص شخصيات متعمق. هارلي كوين والجوكر وليكس لوثر رواد السرد الرئيسيون.',
+         tip:'أمضِ وقتاً في منشئ الشخصيات — قوى أكثر تعني مناطق أكثر للوصول. بهلوانيات هارلي وقنابل ضحكة الجوكر من أكثر القدرات تعدداً. افتح الانتقال السريع في قاعة فيلق الدمار.' }},
+  { id:'lego-movie-2', year:'2019', pub:'Warner Bros.',
+    en:{ title:'The LEGO Movie 2\nVideogame',
+         story:"Bricksburg has become the post-apocalyptic wasteland Apocalypseburg. When Emmet's friends are kidnapped by alien invaders from the Systar System, Emmet embarks on an intergalactic rescue mission to bring them home.",
+         dev:'Developed by TT Fusion and published by Warner Bros. in 2019. Abandoned the traditional LEGO game format in favour of open exploration, focusing heavily on collecting master pieces and building structures in each world.',
+         tip:"Collect master pieces in each world to unlock new build sites. Emmet's construction skills are core to the game — look for orange sparkle spots where only he can build. Exploring off the main path almost always rewards hidden master pieces and character tokens." },
+    ar:{ title:'لعبة فيديو فيلم ليغو 2',
+         story:'تحوّل بريكسبرغ إلى أرض موات تسمى أبوكاليبسبرغ. عندما يُختطف أصدقاء إيميت من غزاة فضائيين، يشرع إيميت في مهمة إنقاذ بين المجرات لإعادتهم.',
+         dev:'طورتها TT Fusion ونشرتها وارنر برذرز عام 2019. تخلت عن تنسيق لعبة ليغو التقليدي لصالح استكشاف مفتوح مع جمع القطع الرئيسية وبناء الهياكل.',
+         tip:'اجمع القطع الرئيسية في كل عالم لفتح مواقع بناء جديدة. مهارات البناء لإيميت هي جوهر اللعبة. الاستكشاف خارج المسار الرئيسي يكافئك دائماً بقطع مخفية.' }},
+  { id:'lego-star-wars-skywalker', year:'2022', pub:'Warner Bros.',
+    en:{ title:'LEGO Star Wars:\nThe Skywalker Saga',
+         story:'The most ambitious LEGO game ever made — all nine Skywalker Saga films in one enormous package. From The Phantom Menace to The Rise of Skywalker, with over 300 playable characters and fully open galaxy exploration.',
+         dev:'Developed by TT Games and published by Warner Bros., this game took over four years and rebuilt the LEGO engine from the ground up. Released April 2022, it introduced third-person over-the-shoulder combat, space flight, and the largest galaxy map ever.',
+         tip:'Complete each episode to unlock that trilogy\'s hub planets. The Kyber Brick system rewards thorough exploration — every challenge and hidden area yields upgrade bricks. Space combat is entirely new to the series; barrel-roll to dodge missiles effectively.' },
+    ar:{ title:'ليغو حرب النجوم:\nملحمة سكاي ووكر',
+         story:'أطموح لعبة ليغو على الإطلاق — جميع أفلام ملحمة سكاي ووكر التسعة في حزمة ضخمة واحدة. من الشبح المهدد إلى صعود سكاي ووكر مع أكثر من 300 شخصية واستكشاف مجرة مفتوحة.',
+         dev:'طورتها TT Games ونشرتها وارنر برذرز، استغرق تطويرها أكثر من أربع سنوات وأعادت بناء المحرك من الصفر. صدرت أبريل 2022 مع قتال الشخص الثالث وقيادة الفضاء.',
+         tip:'أكمل كل حلقة لفتح كواكب مركز الثلاثية. نظام الطوب السايبر يكافئ الاستكشاف الشامل. القتال الفضائي جديد كلياً على السلسلة؛ تعلم التدحرج ببرميل لتفادي الصواريخ.' }},
+  { id:'lego-batman-legacy', year:'2026', pub:'Warner Bros.', wip: true,
+    en:{ title:'LEGO Batman:\nLegacy of the\nDark Knight' },
+    ar:{ title:'ليغو باتمان:\nإرث الفارس المظلم' }}
+];
+
+const txt = {
+  en:{ logo:'LEGO GAMES', lang:'Arabic', about:'About', story:'Game Story', dev:'Development', tip:'Tips', wip:'Content is still under development at the time.', wipTitle:'COMING SOON', scroll:'SCROLL', footer:'LEGO Games Website — Made with love by Mohamed Bekkaye' },
+  ar:{ logo:'ألعاب ليغو', lang:'English', about:'عن المطور', story:'قصة اللعبة', dev:'قصة التطوير', tip:'نصائح', wip:'المحتوى لا يزال قيد التطوير في الوقت الحالي.', wipTitle:'قريباً', scroll:'مرر', footer:'موقع ألعاب ليغو — صنع بحب من محمد بقاية' }
+};
+
+let lang = 'en';
+
+function buildSite() {
+  const c = document.getElementById('games-container');
+  const dir = lang === 'ar' ? 'rtl' : 'ltr';
+  c.innerHTML = '';
+  document.getElementById('nav-logo').textContent = txt[lang].logo;
+  document.getElementById('lang-btn').textContent = txt[lang].lang;
+  document.getElementById('about-text').textContent = txt[lang].about;
+  document.getElementById('footer').textContent = txt[lang].footer;
+  document.documentElement.setAttribute('lang', lang);
+  document.documentElement.setAttribute('dir', dir);
+
+  games.forEach((g, i) => {
+    if (i > 0) {
+      const d = document.createElement('div');
+      d.className = 'dots-divider';
+      d.innerHTML = '<div class="dot"></div>'.repeat(5);
+      c.appendChild(d);
+    }
+
+    const sec = document.createElement('section');
+    sec.className = 'game-section';
+    sec.style.backgroundImage = `url('${g.id}-bg.png')`;
+    const gd = g[lang];
+    const num = String(i + 1).padStart(2, '0');
+    const badgeTxt = lang === 'en' ? 'GAME ' + num : 'لعبة ' + num;
+    const titleHtml = gd.title.replace(/\n/g, '<br>');
+
+    let html = `<div class="game-content" dir="${dir}">
+      <div class="game-badge">${badgeTxt}</div>
+      <h1 class="game-title">${titleHtml}</h1>
+      <p class="game-year">${g.year} &nbsp;·&nbsp; ${g.pub}</p>`;
+
+    if (g.wip) {
+      html += `<div class="wip-note">
+        <span class="wip-title">${txt[lang].wipTitle}</span>
+        <p>${txt[lang].wip}</p>
+      </div>`;
+    } else {
+      html += `<div class="tabs">
+        <button class="tab-btn active" onclick="showTab('${g.id}','story',this)">${txt[lang].story}</button>
+        <button class="tab-btn" onclick="showTab('${g.id}','dev',this)">${txt[lang].dev}</button>
+        <button class="tab-btn" onclick="showTab('${g.id}','tip',this)">${txt[lang].tip}</button>
+      </div>
+      <div id="${g.id}-story" class="panel active"><h3>${txt[lang].story}</h3><p>${gd.story}</p></div>
+      <div id="${g.id}-dev" class="panel"><h3>${txt[lang].dev}</h3><p>${gd.dev}</p></div>
+      <div id="${g.id}-tip" class="panel"><h3>${txt[lang].tip}</h3><p>${gd.tip}</p></div>`;
+    }
+    html += `</div>`;
+
+    if (i < games.length - 1) {
+      html += `<div class="scroll-hint"><span>${txt[lang].scroll}</span><div class="scroll-hint-arrow">v</div></div>`;
+    }
+
+    sec.innerHTML = html;
+    c.appendChild(sec);
+  });
+}
+
+function showTab(id, type, btn) {
+  ['story','dev','tip'].forEach(t => { const p = document.getElementById(`${id}-${t}`); if(p) p.classList.remove('active'); });
+  btn.closest('.tabs').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById(`${id}-${type}`);
+  if (panel) panel.classList.add('active');
+  btn.classList.add('active');
+}
+
+function toggleLang() { lang = lang === 'en' ? 'ar' : 'en'; buildSite(); }
+function openModal() { document.getElementById('modal').classList.add('active'); }
+function closeModal() { document.getElementById('modal').classList.remove('active'); }
+function closeModalOutside(e) { if (e.target === document.getElementById('modal')) closeModal(); }
+
+buildSite();
+</script>
+</body>
+</html>
